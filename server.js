@@ -66,6 +66,7 @@ class Room {
       gameTarget: e.gameTarget, dealerIndex: e.dealerIndex, currentTurnIndex: e.currentTurnIndex,
       trumpSuit: e.trumpSuit, contract: e.contract, multiplier: e.multiplier,
       highestBid: e.highestBid, highestBidderId: e.highestBidderId, passCount: e.passCount,
+      kontraByTeam: e.kontraByTeam, rekontraByTeam: e.rekontraByTeam,
       trick: trickPublic, tricksWon: { A: e.tricksWon.A, B: e.tricksWon.B },
       pointsWon: { A: e.pointsWon.A, B: e.pointsWon.B }, winner: e.winner,
       lastRoundResult: e.lastRoundResult, players: playersPublic,
@@ -122,7 +123,7 @@ class Room {
       this.botTimer = setTimeout(() => {
         try {
           e.players.forEach(p => {
-            if (p.isBot && p.combinations && p.combinations.length) {
+            if (p.combinations && p.combinations.length) {
               p.combinations.forEach((_, idx) => {
                 try { e.declareCombination(p.id, idx); } catch (_) {}
               });

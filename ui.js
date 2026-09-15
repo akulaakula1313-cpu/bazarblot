@@ -226,6 +226,34 @@ export const UI = {
     }, 100);
   },
 
+  syncTurnTimer() {
+    const e = this.engine;
+    if (!e) return;
+    const cur = e.getCurrentPlayer();
+    const bar = document.getElementById('turn-timer');
+    const isMyTurn = cur && cur.id === this.myPlayerId &&
+      (e.phase === PHASES.AUCTION || e.phase === PHASES.TRICK_PLAY);
+    if (!isMyTurn) {
+      this.clearTimers();
+      if (bar) bar.style.width = '0%';
+      return;
+    }
+    if (this.timerInterval) return;
+    this.clearTimers();
+    this.turnStartTime = Date.now();
+    if (bar) bar.style.width = '100%';
+    this.timerInterval = setInterval(() => {
+      const elapsed = Date.now() - this.turnStartTime;
+      const remaining = Math.max(0, CONFIG.TURN_TIME_MS - elapsed);
+      const barEl = document.getElementById('turn-timer');
+      if (barEl) barEl.style.width = ((remaining / CONFIG.TURN_TIME_MS) * 100) + '%';
+      if (remaining <= 0) {
+        clearInterval(this.timerInterval);
+        this.timerInterval = null;
+      }
+    }, 100);
+  },
+
   handleTimeout() {
     const e = this.engine;
     if (!e) return;

@@ -180,6 +180,8 @@ export var Online = {
     e.pointsWon = state.pointsWon || { A: 0, B: 0 };
     e.winner = state.winner;
     e.lastRoundResult = state.lastRoundResult;
+    e.kontraByTeam = state.kontraByTeam;
+    e.rekontraByTeam = state.rekontraByTeam;
     e.stateVersion = state.stateVersion;
     e.trick = (state.trick || []).map(function(t) {
       return { playerId: t.playerId, card: Card.fromJSON(t.card) };
@@ -199,7 +201,10 @@ export var Online = {
     });
     if (state.myPlayerId) callbacks.setMyPlayerId(state.myPlayerId);
     callbacks.setEngine(e);
-    if (window.BB && window.BB.UI) window.BB.UI.renderAll();
+    if (window.BB && window.BB.UI) {
+      window.BB.UI.renderAll();
+      window.BB.UI.syncTurnTimer();
+    }
     if (e.phase === PHASES.GAME_END) {
       setTimeout(function() {
         if (window.BB && window.BB.UI) window.BB.UI.showFinalResult();

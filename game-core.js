@@ -605,6 +605,7 @@ export class BotAI {
     const ev = this.evaluateHandForBid(me.hand);
     if (ev.best.score < 25) return null;
     const nm = this.engine.highestBid === 0 ? CONFIG.MIN_BID : this.engine.highestBid + CONFIG.BID_INCREMENT;
+
     let tb = CONFIG.MIN_BID;
     if (ev.best.score >= 90) tb = 16;
     else if (ev.best.score >= 78) tb = 14;
@@ -612,14 +613,43 @@ export class BotAI {
     else if (ev.best.score >= 52) tb = 11;
     else if (ev.best.score >= 40) tb = 10;
     else if (ev.best.score >= 30) tb = 9;
+
+    // Bid only as high as the team can plausibly catch: own trick points
+    // plus an estimated partner share of the remaining trick points.
+    const reachCeil = Math.max(CONFIG.MIN_BID, Math.floor(BotAI.estimateTeamCatch(me.hand, ev.best.suit) / CONFIG.BID_SCORE_MULT));
+    tb = Math.min(tb, reachCeil);
+    if (tb > CONFIG.MAX_BID) tb = CONFIG.MAX_BID;
+
+    // Never bid a value whose failure would hand the opponent the game.
+    const oppTeam = me.team === 'A' ? 'B' : 'A';
+    const oppScore = this.engine.getTeamScore(oppTeam);
+    while (tb > CONFIG.MIN_BID) {
+      const failPts = (tb * CONFIG.BID_SCORE_MULT + CONFIG.CONTRACT_BONUS) * Math.max(1, this.engine.multiplier);
+      if (oppScore + failPts < this.engine.gameTarget) break;
+      tb--;
+    }
+
     if (tb < nm) {
-      if (nm <= 11 && ev.best.score >= 45) tb = nm;
-      else if (nm <= 9 && ev.best.score >= 32) tb = nm;
+      if (nm <= reachCeil && ((nm <= 11 && ev.best.score >= 45) || (nm <= 9 && ev.best.score >= 32))) tb = nm;
       else return null;
     }
     if (tb < CONFIG.MIN_BID) tb = CONFIG.MIN_BID;
     if (tb > CONFIG.MAX_BID) return null;
     return { value: tb, suit: ev.best.suit };
+  }
+
+  static estimateTeamCatch(hand, trump) {
+    let total = CONFIG.LAST_TRICK_BONUS;
+    for (let i = 0; i < SUITS.length; i++) {
+      for (let j = 0; j < RANKS.length; j++) {
+        const s = SUITS[i], r = RANKS[j];
+        total += (trump && s === trump) ? TRUMP_VALUES[r] : NON_TRUMP_VALUES[r];
+      }
+    }
+    let own = 0;
+    for (let i = 0; i < hand.length; i++) own += hand[i].value(trump);
+    const remaining = total - own;
+    return own + remaining * 0.5;
   }
 
   evaluateHandForBid(hand) {
