@@ -30,7 +30,6 @@ export var Online = {
 
   init: function() {
     var self = this;
-
     var btnJoin = document.getElementById('btn-join-room');
     if (btnJoin) {
       btnJoin.addEventListener('click', function() {
@@ -38,7 +37,6 @@ export var Online = {
         if (input) input.focus();
       });
     }
-
     var btnDoJoin = document.getElementById('btn-do-join');
     if (btnDoJoin) {
       btnDoJoin.addEventListener('click', function() {
@@ -52,7 +50,6 @@ export var Online = {
         self.joinRoom(code);
       });
     }
-
     var inputCode = document.getElementById('input-join-code');
     if (inputCode) {
       inputCode.addEventListener('keydown', function(e) {
@@ -62,7 +59,6 @@ export var Online = {
         }
       });
     }
-
     try {
       this.token = sessionStorage.getItem('bb_token') || null;
     } catch (e) {}
@@ -73,13 +69,11 @@ export var Online = {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       return Promise.resolve();
     }
-
     return new Promise(function(resolve, reject) {
       try {
         var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
         var host = location.host || 'localhost:3000';
         self.socket = new WebSocket(proto + '//' + host + '/ws');
-
         self.socket.addEventListener('open', function() {
           self.reconnectAttempts = 0;
           if (self.token && self.roomId) {
@@ -112,12 +106,7 @@ export var Online = {
 
   handleMessage: function(evt) {
     var msg;
-    try {
-      msg = JSON.parse(evt.data);
-    } catch (e) {
-      return;
-    }
-
+    try { msg = JSON.parse(evt.data); } catch (e) { return; }
     switch (msg.type) {
       case 'ROOM_CREATED':
         this.roomId = msg.roomId;
@@ -130,7 +119,6 @@ export var Online = {
         if (el1) el1.textContent = msg.roomId;
         this.updateLobbyStatus(1);
         break;
-
       case 'ROOM_JOINED':
         this.roomId = msg.roomId;
         this.playerId = msg.playerId;
@@ -142,33 +130,27 @@ export var Online = {
         if (el2) el2.textContent = msg.roomId;
         this.updateLobbyStatus(2);
         break;
-
       case 'RECONNECT_OK':
         this.roomId = msg.roomId;
         this.playerId = msg.playerId;
         callbacks.showToast('Reconnected', 'success');
         break;
-
       case 'OPPONENT_JOINED':
         this.updateLobbyStatus(2);
         callbacks.showToast('Opponent joined', 'success');
         break;
-
       case 'OPPONENT_LEFT':
         callbacks.showToast('Opponent left', 'error');
         var s = document.getElementById('lobby-opp-status');
         if (s) { s.textContent = 'LEFT'; s.className = 'text-red-400 text-xs font-bold'; }
         this.disableStart();
         break;
-
       case 'GAME_START':
         this.enterGame();
         break;
-
       case 'STATE_UPDATE':
         this.applyServerState(msg.state);
         break;
-
       case 'ERROR':
         callbacks.showToast(msg.message || 'Error', 'error');
         break;
@@ -182,7 +164,6 @@ export var Online = {
 
   applyServerState: function(state) {
     if (!state) return;
-
     var e = callbacks.getEngine() || new RulesEngine();
     e.phase = state.phase;
     e.roundNumber = state.roundNumber;
@@ -200,11 +181,9 @@ export var Online = {
     e.winner = state.winner;
     e.lastRoundResult = state.lastRoundResult;
     e.stateVersion = state.stateVersion;
-
     e.trick = (state.trick || []).map(function(t) {
       return { playerId: t.playerId, card: Card.fromJSON(t.card) };
     });
-
     e.players = (state.players || []).map(function(p) {
       var pl = new Player(p.id, p.name, p.seat, p.team, p.isBot);
       pl.score = p.score;
@@ -218,12 +197,9 @@ export var Online = {
       }
       return pl;
     });
-
     if (state.myPlayerId) callbacks.setMyPlayerId(state.myPlayerId);
     callbacks.setEngine(e);
-
     if (window.BB && window.BB.UI) window.BB.UI.renderAll();
-
     if (e.phase === PHASES.GAME_END) {
       setTimeout(function() {
         if (window.BB && window.BB.UI) window.BB.UI.showFinalResult();
@@ -245,7 +221,7 @@ export var Online = {
       callbacks.showToast('Connection lost', 'error');
       if (this.roomId && this.token && this.reconnectAttempts < 3) {
         this.reconnectAttempts++;
-        setTimeout(function() { self.connect().catch(function() {}); }, 2000 * this.reconnectAttempts);
+        setTimeout(function() { self.connect().catch(function() {}); }, 2000 * self.reconnectAttempts);
         return;
       }
       callbacks.showScreen('menu');
