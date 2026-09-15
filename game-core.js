@@ -109,7 +109,7 @@ export class RulesEngine {
     return d;
   }
 
-  /* ⚠ ИСПРАВЛЕНО: сначала reset(), потом раздача карт */
+  // deal: reset players first, then distribute cards
   deal(rng = shuffleSecure) {
     // 1. Сначала сбрасываем состояние игроков
     this.players.forEach(p => p.reset());
