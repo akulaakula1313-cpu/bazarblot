@@ -1,12 +1,12 @@
 /* ============================================================================
- * ԲԱԶԱՌ-ԲԼՈՏ — Shared Game Core
+ * BAZAR-BLOT - Shared Game Core
  * SANI GROUP
  * ============================================================================ */
 
 'use strict';
 
-export const SUITS = ['♠', '♥', '♦', '♣'];
-export const SUIT_NAMES_HY = { '♠': 'Պիկ', '♥': 'Սիրտ', '♦': 'Ագուռ', '♣': 'Խաչ' };
+export const SUITS = ['\u2660', '\u2665', '\u2666', '\u2663'];
+export const SUIT_NAMES_HY = { '\u2660': '\u054a\u056b\u056f', '\u2665': '\u054d\u056b\u0580\u057f', '\u2666': '\u0531\u0563\u0578\u0582\u057c', '\u2663': '\u053d\u0561\u0579' };
 export const RANKS = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 export const RANK_ORDER = { '7': 0, '8': 1, '9': 2, '10': 3, 'J': 4, 'Q': 5, 'K': 6, 'A': 7 };
 
@@ -56,7 +56,9 @@ export function shuffleSecure(deck) {
   const arr = deck.slice();
   for (let i = arr.length - 1; i > 0; i--) {
     const j = secureRandomInt(i + 1);
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+    const tmp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = tmp;
   }
   return arr;
 }
@@ -64,9 +66,11 @@ export function shuffleSecure(deck) {
 /* ===== CARD ===== */
 export class Card {
   constructor(suit, rank) {
-    this.suit = suit; this.rank = rank; this.id = suit + '-' + rank;
+    this.suit = suit;
+    this.rank = rank;
+    this.id = suit + '-' + rank;
   }
-  isRed() { return this.suit === '♥' || this.suit === '♦'; }
+  isRed() { return this.suit === '\u2665' || this.suit === '\u2666'; }
   isTrump(t) { return t !== null && this.suit === t; }
   value(t) { return this.isTrump(t) ? TRUMP_VALUES[this.rank] : NON_TRUMP_VALUES[this.rank]; }
   strength(t) { return this.isTrump(t) ? TRUMP_STRENGTH[this.rank] : NON_TRUMP_STRENGTH[this.rank]; }
@@ -78,50 +82,85 @@ export class Card {
 /* ===== PLAYER ===== */
 export class Player {
   constructor(id, name, seat, team, isBot) {
-    this.id = id; this.name = name; this.seat = seat; this.team = team; this.isBot = !!isBot;
-    this.hand = []; this.score = 0; this.tricksWon = 0; this.connected = true;
-    this.combinations = []; this.declaredCombos = [];
-    this.blotDeclared = false; this.reblotDeclared = false;
+    this.id = id;
+    this.name = name;
+    this.seat = seat;
+    this.team = team;
+    this.isBot = !!isBot;
+    this.hand = [];
+    this.score = 0;
+    this.tricksWon = 0;
+    this.connected = true;
+    this.combinations = [];
+    this.declaredCombos = [];
+    this.blotDeclared = false;
+    this.reblotDeclared = false;
   }
   reset() {
-    this.hand = []; this.tricksWon = 0;
-    this.combinations = []; this.declaredCombos = [];
-    this.blotDeclared = false; this.reblotDeclared = false;
+    this.hand = [];
+    this.tricksWon = 0;
+    this.combinations = [];
+    this.declaredCombos = [];
+    this.blotDeclared = false;
+    this.reblotDeclared = false;
   }
 }
 
 /* ===== RULES ENGINE ===== */
 export class RulesEngine {
   constructor() {
-    this.players = []; this.dealerIndex = 0; this.currentTurnIndex = 0;
-    this.trumpSuit = null; this.contract = null; this.multiplier = 1;
-    this.highestBid = 0; this.highestBidderId = null; this.passCount = 0;
-    this.trick = []; this.tricksWon = { A: 0, B: 0 }; this.pointsWon = { A: 0, B: 0 };
-    this.tricksHistory = []; this.roundNumber = 1; this.gameTarget = 151;
-    this.phase = PHASES.WAITING; this.winner = null; this.lastRoundResult = null;
-    this.stateVersion = 0; this.kontraByTeam = null; this.rekontraByTeam = null;
-    this.bidsHistory = []; this.combinationWindowOpen = false;
+    this.players = [];
+    this.dealerIndex = 0;
+    this.currentTurnIndex = 0;
+    this.trumpSuit = null;
+    this.contract = null;
+    this.multiplier = 1;
+    this.highestBid = 0;
+    this.highestBidderId = null;
+    this.passCount = 0;
+    this.trick = [];
+    this.tricksWon = { A: 0, B: 0 };
+    this.pointsWon = { A: 0, B: 0 };
+    this.tricksHistory = [];
+    this.roundNumber = 1;
+    this.gameTarget = 151;
+    this.phase = PHASES.WAITING;
+    this.winner = null;
+    this.lastRoundResult = null;
+    this.stateVersion = 0;
+    this.kontraByTeam = null;
+    this.rekontraByTeam = null;
+    this.bidsHistory = [];
+    this.combinationWindowOpen = false;
   }
 
   createDeck() {
     const d = [];
-    for (const s of SUITS) for (const r of RANKS) d.push(new Card(s, r));
+    for (let si = 0; si < SUITS.length; si++) {
+      for (let ri = 0; ri < RANKS.length; ri++) {
+        d.push(new Card(SUITS[si], RANKS[ri]));
+      }
+    }
     return d;
   }
 
-  // deal: reset players first, then distribute cards
-  deal(rng = shuffleSecure) {
-    // 1. Сначала сбрасываем состояние игроков
-    this.players.forEach(p => p.reset());
+  /* deal: reset players first, then distribute cards */
+  deal(rng) {
+    if (rng === undefined) rng = shuffleSecure;
 
-    // 2. Потом раздаём карты
+    // 1. Reset player state first
+    for (let i = 0; i < this.players.length; i++) {
+      this.players[i].reset();
+    }
+
+    // 2. Then distribute cards
     const deck = rng(this.createDeck());
     if (deck.length !== CONFIG.DECK_SIZE) throw new Error('Deck must be 32 cards');
-    this.players.forEach((p, i) => {
-      p.hand = deck.slice(i * CONFIG.CARDS_PER_PLAYER, (i + 1) * CONFIG.CARDS_PER_PLAYER);
-    });
+    for (let i = 0; i < this.players.length; i++) {
+      this.players[i].hand = deck.slice(i * CONFIG.CARDS_PER_PLAYER, (i + 1) * CONFIG.CARDS_PER_PLAYER);
+    }
 
-    // 3. Сбрасываем состояние раунда
+    // 3. Reset round state
     this.trumpSuit = null;
     this.contract = null;
     this.multiplier = 1;
@@ -147,7 +186,9 @@ export class RulesEngine {
     if (start > CONFIG.MAX_BID) return legal;
     for (let v = start; v <= CONFIG.MAX_BID; v += CONFIG.BID_INCREMENT) {
       legal.push({ value: v, suit: null });
-      for (const s of SUITS) legal.push({ value: v, suit: s });
+      for (let i = 0; i < SUITS.length; i++) {
+        legal.push({ value: v, suit: SUITS[i] });
+      }
     }
     return legal;
   }
@@ -155,25 +196,29 @@ export class RulesEngine {
   makeBid(playerId, value, suit) {
     if (this.phase !== PHASES.AUCTION) throw new Error('Auction ended');
     if (typeof value !== 'number' || value < CONFIG.MIN_BID || value > CONFIG.MAX_BID) throw new Error('Bid 8-16');
-    if (suit !== null && !SUITS.includes(suit)) throw new Error('Invalid suit');
+    if (suit !== null && SUITS.indexOf(suit) === -1) throw new Error('Invalid suit');
     if (this.highestBid > 0 && value <= this.highestBid) throw new Error('Bid must be higher');
     this.highestBid = value;
     this.highestBidderId = playerId;
-    this.contract = { value, suit };
+    this.contract = { value: value, suit: suit };
     this.passCount = 0;
-    this.bidsHistory.push({ playerId, value, suit, pass: false });
+    this.bidsHistory.push({ playerId: playerId, value: value, suit: suit, pass: false });
     this.stateVersion++;
     this.currentTurnIndex = (this.currentTurnIndex + 1) % 4;
   }
 
   passBid(playerId) {
     if (this.phase !== PHASES.AUCTION) throw new Error('Auction ended');
-    this.bidsHistory.push({ playerId, pass: true });
+    this.bidsHistory.push({ playerId: playerId, pass: true });
     this.passCount++;
     this.stateVersion++;
-    if (this.highestBid === 0 && this.passCount >= 4) { this.startNextRound(true); return; }
+
+    if (this.highestBid === 0 && this.passCount >= 4) {
+      this.startNextRound(true);
+      return;
+    }
     if (this.highestBid > 0 && this.passCount >= 3) {
-      const bidder = this.players.find(p => p.id === this.highestBidderId);
+      const bidder = this.players.find(function(p) { return p.id === this.highestBidderId; }.bind(this));
       if (bidder) { this.finishAuction(); return; }
     }
     this.currentTurnIndex = (this.currentTurnIndex + 1) % 4;
@@ -183,53 +228,69 @@ export class RulesEngine {
     if (this.highestBid === 0) { this.startNextRound(true); return; }
     this.trumpSuit = this.contract.suit;
     this.phase = PHASES.BONUS_DECLARATION;
-    const idx = this.players.findIndex(p => p.id === this.highestBidderId);
+    const idx = this.players.findIndex(function(p) { return p.id === this.highestBidderId; }.bind(this));
     this.currentTurnIndex = idx >= 0 ? idx : 0;
     this.detectAllCombinations();
     this.combinationWindowOpen = true;
   }
 
   detectAllCombinations() {
-    this.players.forEach(p => {
-      p.combinations = RulesEngine.detectCombinations(p.hand, this.trumpSuit);
-    });
+    for (let i = 0; i < this.players.length; i++) {
+      this.players[i].combinations = RulesEngine.detectCombinations(this.players[i].hand, this.trumpSuit);
+    }
   }
 
   static detectCombinations(hand, trumpSuit) {
     const combos = [];
     const byRank = {};
-    hand.forEach(c => {
+    for (let i = 0; i < hand.length; i++) {
+      const c = hand[i];
       if (!byRank[c.rank]) byRank[c.rank] = [];
       byRank[c.rank].push(c);
-    });
-    for (const rank of Object.keys(byRank)) {
+    }
+    const ranks = Object.keys(byRank);
+    for (let ri = 0; ri < ranks.length; ri++) {
+      const rank = ranks[ri];
       if (byRank[rank].length === 4) {
         combos.push({
-          type: 'FOUR', rank, cards: byRank[rank].slice(), points: 100,
+          type: 'FOUR',
+          rank: rank,
+          cards: byRank[rank].slice(),
+          points: 100,
           priority: RulesEngine.fourPriority(rank, trumpSuit)
         });
       }
     }
-    for (const suit of SUITS) {
-      const suited = hand.filter(c => c.suit === suit).sort((a, b) => RANK_ORDER[a.rank] - RANK_ORDER[b.rank]);
+    for (let si = 0; si < SUITS.length; si++) {
+      const suit = SUITS[si];
+      const suited = hand.filter(function(c) { return c.suit === suit; }).sort(function(a, b) { return RANK_ORDER[a.rank] - RANK_ORDER[b.rank]; });
       if (suited.length < 3) continue;
-      const runs = []; let cur = [suited[0]];
+      const runs = [];
+      let cur = [suited[0]];
       for (let i = 1; i < suited.length; i++) {
-        if (RANK_ORDER[suited[i].rank] === RANK_ORDER[suited[i-1].rank] + 1) cur.push(suited[i]);
-        else { if (cur.length >= 3) runs.push(cur.slice()); cur = [suited[i]]; }
+        if (RANK_ORDER[suited[i].rank] === RANK_ORDER[suited[i-1].rank] + 1) {
+          cur.push(suited[i]);
+        } else {
+          if (cur.length >= 3) runs.push(cur.slice());
+          cur = [suited[i]];
+        }
       }
       if (cur.length >= 3) runs.push(cur.slice());
-      for (const run of runs) {
+      for (let ri = 0; ri < runs.length; ri++) {
+        const run = runs[ri];
         const points = run.length === 3 ? 20 : run.length === 4 ? 50 : 100;
         combos.push({
           type: run.length === 3 ? 'SEQ3' : run.length === 4 ? 'SEQ4' : 'SEQ5',
-          suit, cards: run.slice(), points, priority: run.length
+          suit: suit,
+          cards: run.slice(),
+          points: points,
+          priority: run.length
         });
       }
     }
     if (trumpSuit) {
-      const k = hand.find(c => c.suit === trumpSuit && c.rank === 'K');
-      const q = hand.find(c => c.suit === trumpSuit && c.rank === 'Q');
+      const k = hand.find(function(c) { return c.suit === trumpSuit && c.rank === 'K'; });
+      const q = hand.find(function(c) { return c.suit === trumpSuit && c.rank === 'Q'; });
       if (k && q) combos.push({ type: 'BLOT', cards: [k, q], points: 0, priority: 100 });
     }
     return combos;
@@ -245,10 +306,10 @@ export class RulesEngine {
   }
 
   declareCombination(playerId, comboIndex) {
-    const p = this.players.find(pl => pl.id === playerId);
+    const p = this.players.find(function(pl) { return pl.id === playerId; });
     if (!p || !p.combinations[comboIndex]) return false;
     const combo = p.combinations[comboIndex];
-    if (p.declaredCombos.includes(combo)) return false;
+    if (p.declaredCombos.indexOf(combo) !== -1) return false;
     p.declaredCombos.push(combo);
     if (combo.type === 'BLOT') {
       if (!p.blotDeclared) p.blotDeclared = true;
@@ -260,29 +321,29 @@ export class RulesEngine {
 
   getLegalCards(playerId) {
     if (this.phase !== PHASES.TRICK_PLAY) return [];
-    const player = this.players.find(p => p.id === playerId);
+    const player = this.players.find(function(p) { return p.id === playerId; });
     if (!player || player.hand.length === 0) return [];
     if (this.trick.length === 0) return player.hand.slice();
 
     const leadSuit = this.trick[0].card.suit;
-    const leadCards = player.hand.filter(c => c.suit === leadSuit);
+    const leadCards = player.hand.filter(function(c) { return c.suit === leadSuit; });
     if (leadCards.length > 0) return leadCards;
 
     if (this.trumpSuit === null) return player.hand.slice();
-    const trumpsInHand = player.hand.filter(c => c.suit === this.trumpSuit);
+    const trumpsInHand = player.hand.filter(function(c) { return c.suit === this.trumpSuit; }.bind(this));
     if (trumpsInHand.length === 0) return player.hand.slice();
 
-    const trumpsOnTable = this.trick.filter(t => t.card.suit === this.trumpSuit);
+    const trumpsOnTable = this.trick.filter(function(t) { return t.card.suit === this.trumpSuit; }.bind(this));
     if (trumpsOnTable.length === 0) {
       const winner = this.peekTrickWinner();
       if (!winner) return player.hand.slice();
-      const wp = this.players.find(p => p.id === winner.playerId);
+      const wp = this.players.find(function(p) { return p.id === winner.playerId; });
       if (wp.team !== player.team) {
         const ws = winner.card.strength(this.trumpSuit);
-        const higher = trumpsInHand.filter(c => c.strength(this.trumpSuit) > ws);
+        const higher = trumpsInHand.filter(function(c) { return c.strength(this.trumpSuit) > ws; }.bind(this));
         if (higher.length > 0) {
-          const ms = Math.max(...higher.map(c => c.strength(this.trumpSuit)));
-          return higher.filter(c => c.strength(this.trumpSuit) === ms);
+          const ms = Math.max.apply(null, higher.map(function(c) { return c.strength(this.trumpSuit); }.bind(this)));
+          return higher.filter(function(c) { return c.strength(this.trumpSuit) === ms; }.bind(this));
         }
       }
       return trumpsInHand;
@@ -291,13 +352,13 @@ export class RulesEngine {
       for (let i = 1; i < trumpsOnTable.length; i++) {
         if (trumpsOnTable[i].card.strength(this.trumpSuit) > ht.card.strength(this.trumpSuit)) ht = trumpsOnTable[i];
       }
-      const wp = this.players.find(p => p.id === ht.playerId);
+      const wp = this.players.find(function(p) { return p.id === ht.playerId; });
       if (wp.team !== player.team) {
         const ws = ht.card.strength(this.trumpSuit);
-        const higher = trumpsInHand.filter(c => c.strength(this.trumpSuit) > ws);
+        const higher = trumpsInHand.filter(function(c) { return c.strength(this.trumpSuit) > ws; }.bind(this));
         if (higher.length > 0) {
-          const ms = Math.max(...higher.map(c => c.strength(this.trumpSuit)));
-          return higher.filter(c => c.strength(this.trumpSuit) === ms);
+          const ms = Math.max.apply(null, higher.map(function(c) { return c.strength(this.trumpSuit); }.bind(this)));
+          return higher.filter(function(c) { return c.strength(this.trumpSuit) === ms; }.bind(this));
         }
       }
       return trumpsInHand;
@@ -306,23 +367,23 @@ export class RulesEngine {
 
   playCard(playerId, cardId) {
     if (this.phase !== PHASES.TRICK_PLAY) throw new Error('Not trick phase');
-    const player = this.players.find(p => p.id === playerId);
+    const player = this.players.find(function(p) { return p.id === playerId; });
     if (!player) throw new Error('Player not found');
     if (player.id !== this.players[this.currentTurnIndex].id) throw new Error('Not your turn');
     const legal = this.getLegalCards(playerId);
-    const idx = player.hand.findIndex(c => c.id === cardId);
+    const idx = player.hand.findIndex(function(c) { return c.id === cardId; });
     if (idx === -1) throw new Error('Card not in hand');
     const card = player.hand[idx];
-    if (!legal.some(c => c.id === cardId)) throw new Error('Illegal card');
+    if (!legal.some(function(c) { return c.id === cardId; })) throw new Error('Illegal card');
     player.hand.splice(idx, 1);
-    this.trick.push({ playerId, card });
+    this.trick.push({ playerId: playerId, card: card });
     this.stateVersion++;
     if (this.trick.length === 4) this.resolveTrick();
     else this.currentTurnIndex = (this.currentTurnIndex + 1) % 4;
   }
 
   peekTrickWinner(t) {
-    t = t || this.trick;
+    if (t === undefined) t = this.trick;
     if (!t.length) return null;
     const lead = t[0].card.suit;
     let w = t[0];
@@ -331,9 +392,11 @@ export class RulesEngine {
       const c = t[i];
       const cT = tr !== null && c.card.suit === tr;
       const wT = tr !== null && w.card.suit === tr;
-      if (cT && !wT) w = c;
-      else if (cT && wT) { if (c.card.strength(tr) > w.card.strength(tr)) w = c; }
-      else if (!cT && !wT) {
+      if (cT && !wT) {
+        w = c;
+      } else if (cT && wT) {
+        if (c.card.strength(tr) > w.card.strength(tr)) w = c;
+      } else if (!cT && !wT) {
         if (c.card.suit === lead && w.card.suit === lead && c.card.strength(tr) > w.card.strength(tr)) w = c;
       }
     }
@@ -342,20 +405,25 @@ export class RulesEngine {
 
   resolveTrick() {
     const w = this.peekTrickWinner();
-    const wp = this.players.find(p => p.id === w.playerId);
+    const wp = this.players.find(function(p) { return p.id === w.playerId; });
     const tr = this.trumpSuit;
     let pts = 0;
-    this.trick.forEach(t => pts += t.card.value(tr));
+    for (let i = 0; i < this.trick.length; i++) {
+      pts += this.trick[i].card.value(tr);
+    }
     const isLast = this.tricksWon.A + this.tricksWon.B + 1 === CONFIG.TRICKS_PER_ROUND;
     if (isLast) pts += CONFIG.LAST_TRICK_BONUS;
     this.pointsWon[wp.team] += pts;
     this.tricksWon[wp.team]++;
     wp.tricksWon++;
     this.tricksHistory.push({
-      winnerId: wp.id, winnerTeam: wp.team, points: pts,
-      cards: this.trick.slice(), isLastTrick: isLast
+      winnerId: wp.id,
+      winnerTeam: wp.team,
+      points: pts,
+      cards: this.trick.slice(),
+      isLastTrick: isLast
     });
-    this.currentTurnIndex = this.players.findIndex(p => p.id === w.playerId);
+    this.currentTurnIndex = this.players.findIndex(function(p) { return p.id === w.playerId; });
     this.trick = [];
     if (this.tricksWon.A + this.tricksWon.B === CONFIG.TRICKS_PER_ROUND) {
       this.phase = PHASES.ROUND_SCORE;
@@ -372,7 +440,7 @@ export class RulesEngine {
   }
 
   calculateRoundScore() {
-    const bidder = this.players.find(p => p.id === this.highestBidderId);
+    const bidder = this.players.find(function(p) { return p.id === this.highestBidderId; }.bind(this));
     if (!bidder) throw new Error('No bidder');
     const bt = bidder.team;
     const ot = bt === 'A' ? 'B' : 'A';
@@ -385,9 +453,15 @@ export class RulesEngine {
     const oCombo = this.calculateComboPoints(ot);
     let bS = 0, oS = 0, flag = '';
 
-    if (bTricks === 8) { bS = CONFIG.KAPUT_POINTS; oS = 0; flag = 'KAPUT'; }
-    else if (bTricks === 0) { bS = 0; oS = bidPoints * mult + CONFIG.CONTRACT_BONUS; flag = 'TARS_KAPUT'; }
-    else if (bPts >= bidPoints) {
+    if (bTricks === 8) {
+      bS = CONFIG.KAPUT_POINTS;
+      oS = 0;
+      flag = 'KAPUT';
+    } else if (bTricks === 0) {
+      bS = 0;
+      oS = bidPoints * mult + CONFIG.CONTRACT_BONUS;
+      flag = 'TARS_KAPUT';
+    } else if (bPts >= bidPoints) {
       bS = bidPoints * mult + CONFIG.CONTRACT_BONUS - oPts + bCombo;
       oS = oPts + oCombo;
       flag = 'SUCCESS';
@@ -400,19 +474,30 @@ export class RulesEngine {
     bS = RulesEngine.roundArmenian(Math.max(0, bS));
     oS = RulesEngine.roundArmenian(Math.max(0, oS));
 
-    this.players.forEach(p => p.score += p.team === bt ? bS : oS);
+    for (let i = 0; i < this.players.length; i++) {
+      this.players[i].score += this.players[i].team === bt ? bS : oS;
+    }
 
     this.lastRoundResult = {
-      bidderTeam: bt, oppTeam: ot, bScore: bS, oScore: oS,
-      flag, bidderPts: bPts, oppPts: oPts,
-      bidderTricks: bTricks, oppTricks: this.tricksWon[ot],
-      contract: this.contract.value, bidPoints, multiplier: mult,
+      bidderTeam: bt,
+      oppTeam: ot,
+      bScore: bS,
+      oScore: oS,
+      flag: flag,
+      bidderPts: bPts,
+      oppPts: oPts,
+      bidderTricks: bTricks,
+      oppTricks: this.tricksWon[ot],
+      contract: this.contract.value,
+      bidPoints: bidPoints,
+      multiplier: mult,
       trump: this.trumpSuit
     };
 
     this.phase = PHASES.GAME_SCORE;
 
-    const sA = this.getTeamScore('A'), sB = this.getTeamScore('B');
+    const sA = this.getTeamScore('A');
+    const sB = this.getTeamScore('B');
     if (sA >= this.gameTarget || sB >= this.gameTarget) {
       this.winner = sA > sB ? 'A' : sB > sA ? 'B' : null;
       this.phase = PHASES.GAME_END;
@@ -421,18 +506,24 @@ export class RulesEngine {
 
   calculateComboPoints(team) {
     let t = 0;
-    this.players.filter(p => p.team === team).forEach(p => {
-      p.declaredCombos.forEach(c => t += c.points || 0);
-    });
+    const teamPlayers = this.players.filter(function(p) { return p.team === team; });
+    for (let i = 0; i < teamPlayers.length; i++) {
+      const declared = teamPlayers[i].declaredCombos;
+      for (let j = 0; j < declared.length; j++) {
+        t += declared[j].points || 0;
+      }
+    }
     return t;
   }
 
   getTeamScore(team) {
-    const p = this.players.find(pl => pl.team === team);
+    const p = this.players.find(function(pl) { return pl.team === team; });
     return p ? p.score : 0;
   }
 
-  getCurrentPlayer() { return this.players[this.currentTurnIndex]; }
+  getCurrentPlayer() {
+    return this.players[this.currentTurnIndex];
+  }
 
   startNextRound(inc) {
     const sv = { A: this.getTeamScore('A'), B: this.getTeamScore('B') };
@@ -440,7 +531,9 @@ export class RulesEngine {
     this.roundNumber++;
     this.phase = PHASES.DEALING;
     this.deal();
-    this.players.forEach(p => p.score = sv[p.team]);
+    for (let i = 0; i < this.players.length; i++) {
+      this.players[i].score = sv[this.players[i].team];
+    }
     this.stateVersion++;
   }
 }
@@ -453,18 +546,19 @@ export class BotAI {
   }
 
   decideBid() {
-    const me = this.engine.players.find(p => p.id === this.playerId);
+    const me = this.engine.players.find(function(p) { return p.id === this.playerId; }.bind(this));
     if (!me) return null;
     const ev = this.evaluateHandForBid(me.hand);
     if (ev.best.score < 25) return null;
     const nm = this.engine.highestBid === 0 ? CONFIG.MIN_BID : this.engine.highestBid + CONFIG.BID_INCREMENT;
-    let tb = ev.best.score >= 90 ? 16
-      : ev.best.score >= 78 ? 14
-      : ev.best.score >= 65 ? 12
-      : ev.best.score >= 52 ? 11
-      : ev.best.score >= 40 ? 10
-      : ev.best.score >= 30 ? 9
-      : CONFIG.MIN_BID;
+    let tb = CONFIG.MIN_BID;
+    if (ev.best.score >= 90) tb = 16;
+    else if (ev.best.score >= 78) tb = 14;
+    else if (ev.best.score >= 65) tb = 12;
+    else if (ev.best.score >= 52) tb = 11;
+    else if (ev.best.score >= 40) tb = 10;
+    else if (ev.best.score >= 30) tb = 9;
+
     if (tb < nm) {
       if (nm <= 11 && ev.best.score >= 45) tb = nm;
       else if (nm <= 9 && ev.best.score >= 32) tb = nm;
@@ -476,26 +570,35 @@ export class BotAI {
   }
 
   evaluateHandForBid(hand) {
-    const suits = [null, ...SUITS];
+    const suits = [null].concat(SUITS);
     let best = { suit: null, score: 0 };
-    for (const ts of suits) {
+    for (let si = 0; si < suits.length; si++) {
+      const ts = suits[si];
       let sc = 0;
-      const byS = { '♠': [], '♥': [], '♦': [], '♣': [] };
-      hand.forEach(c => byS[c.suit].push(c.rank));
+      const byS = { '\u2660': [], '\u2665': [], '\u2666': [], '\u2663': [] };
+      for (let i = 0; i < hand.length; i++) {
+        byS[hand[i].suit].push(hand[i].rank);
+      }
 
       if (!ts) {
         const cnt = { A: 0, '10': 0, K: 0, Q: 0, J: 0 };
-        hand.forEach(c => cnt[c.rank]++);
+        for (let i = 0; i < hand.length; i++) {
+          if (cnt[hand[i].rank] !== undefined) cnt[hand[i].rank]++;
+        }
         sc = (cnt.A || 0) * 16 + (cnt['10'] || 0) * 13 + (cnt.K || 0) * 6 + (cnt.Q || 0) * 3 + (cnt.J || 0) * 1;
-        for (const s of SUITS) {
-          const l = byS[s].length;
+        for (let j = 0; j < SUITS.length; j++) {
+          const l = byS[SUITS[j]].length;
           if (l === 0) sc += 7;
           else if (l === 1) sc += 3;
         }
       } else {
         const tr = byS[ts];
-        const hJ = tr.includes('J'), h9 = tr.includes('9'), hA = tr.includes('A');
-        const h10 = tr.includes('10'), hK = tr.includes('K'), hQ = tr.includes('Q');
+        const hJ = tr.indexOf('J') !== -1;
+        const h9 = tr.indexOf('9') !== -1;
+        const hA = tr.indexOf('A') !== -1;
+        const h10 = tr.indexOf('10') !== -1;
+        const hK = tr.indexOf('K') !== -1;
+        const hQ = tr.indexOf('Q') !== -1;
         sc = tr.length * 6;
         if (hJ) sc += 26;
         if (h9) sc += 17;
@@ -505,17 +608,19 @@ export class BotAI {
         if (hQ) sc += 3;
         if (hJ && h9) sc += 14;
         if (hA && h10) sc += 9;
-        for (const s of SUITS) {
-          if (s !== ts) for (const r of byS[s]) {
-            if (r === 'A') sc += 10;
-            else if (r === '10') sc += 6;
-            else if (r === 'K') sc += 2;
+        for (let j = 0; j < SUITS.length; j++) {
+          if (SUITS[j] === ts) continue;
+          const ranks = byS[SUITS[j]];
+          for (let k = 0; k < ranks.length; k++) {
+            if (ranks[k] === 'A') sc += 10;
+            else if (ranks[k] === '10') sc += 6;
+            else if (ranks[k] === 'K') sc += 2;
           }
         }
       }
       if (sc > best.score) best = { suit: ts, score: Math.min(100, sc) };
     }
-    return { best };
+    return { best: best };
   }
 
   decideCard() {
@@ -528,70 +633,94 @@ export class BotAI {
 
     const sims = rt >= 5 ? CONFIG.MC_SIMULATIONS : CONFIG.MC_SIMULATIONS_ENDGAME;
     const scores = {};
-    legal.forEach(c => scores[c.id] = 0);
+    for (let i = 0; i < legal.length; i++) scores[legal[i].id] = 0;
 
     for (let i = 0; i < sims; i++) {
       const w = this.generateWorld();
       if (!w) continue;
-      for (const c of legal) scores[c.id] += this.simulatePlayout(c, w);
+      for (let j = 0; j < legal.length; j++) {
+        scores[legal[j].id] += this.simulatePlayout(legal[j], w);
+      }
     }
 
     let best = legal[0], bv = -Infinity;
-    for (const c of legal) if (scores[c.id] > bv) { bv = scores[c.id]; best = c; }
+    for (let i = 0; i < legal.length; i++) {
+      if (scores[legal[i].id] > bv) {
+        bv = scores[legal[i].id];
+        best = legal[i];
+      }
+    }
     return best;
   }
 
   generateWorld() {
-    const me = this.engine.players.find(p => p.id === this.playerId);
+    const me = this.engine.players.find(function(p) { return p.id === this.playerId; }.bind(this));
     if (!me) return null;
     const mine = {};
-    me.hand.forEach(c => mine[c.id] = true);
+    for (let i = 0; i < me.hand.length; i++) mine[me.hand[i].id] = true;
     const played = {};
-    this.engine.tricksHistory.forEach(t => t.cards.forEach(tc => played[tc.card.id] = true));
-    this.engine.trick.forEach(tc => played[tc.card.id] = true);
+    for (let i = 0; i < this.engine.tricksHistory.length; i++) {
+      const cards = this.engine.tricksHistory[i].cards;
+      for (let j = 0; j < cards.length; j++) played[cards[j].card.id] = true;
+    }
+    for (let i = 0; i < this.engine.trick.length; i++) {
+      played[this.engine.trick[i].card.id] = true;
+    }
 
     const pool = [];
-    for (const s of SUITS) for (const r of RANKS) {
-      const id = s + '-' + r;
-      if (mine[id] || played[id]) continue;
-      pool.push(new Card(s, r));
+    for (let si = 0; si < SUITS.length; si++) {
+      for (let ri = 0; ri < RANKS.length; ri++) {
+        const id = SUITS[si] + '-' + RANKS[ri];
+        if (mine[id] || played[id]) continue;
+        pool.push(new Card(SUITS[si], RANKS[ri]));
+      }
     }
     const sh = shuffleSecure(pool);
     const hands = {};
-    const others = this.engine.players.filter(p => p.id !== this.playerId);
+    const others = this.engine.players.filter(function(p) { return p.id !== this.playerId; }.bind(this));
     let idx = 0;
-    for (const p of others) {
-      const pc = this.countPlayedByPlayer(p.id);
+    for (let i = 0; i < others.length; i++) {
+      const pc = this.countPlayedByPlayer(others[i].id);
       const rem = CONFIG.CARDS_PER_PLAYER - pc;
       const nh = [];
       for (let k = 0; k < rem && idx < sh.length; k++) nh.push(sh[idx++]);
-      hands[p.id] = nh;
+      hands[others[i].id] = nh;
     }
-    return { hands };
+    return { hands: hands };
   }
 
   countPlayedByPlayer(pid) {
     let n = 0;
-    this.engine.tricksHistory.forEach(t => t.cards.forEach(tc => { if (tc.playerId === pid) n++; }));
-    this.engine.trick.forEach(tc => { if (tc.playerId === pid) n++; });
+    for (let i = 0; i < this.engine.tricksHistory.length; i++) {
+      const cards = this.engine.tricksHistory[i].cards;
+      for (let j = 0; j < cards.length; j++) {
+        if (cards[j].playerId === pid) n++;
+      }
+    }
+    for (let i = 0; i < this.engine.trick.length; i++) {
+      if (this.engine.trick[i].playerId === pid) n++;
+    }
     return n;
   }
 
   simulatePlayout(cand, world) {
     const tr = this.engine.trumpSuit;
-    const me = this.engine.players.find(p => p.id === this.playerId);
+    const me = this.engine.players.find(function(p) { return p.id === this.playerId; }.bind(this));
     const mt = me.team;
     const pls = this.engine.players;
     const hands = {};
-    hands[this.playerId] = me.hand.filter(c => c.id !== cand.id);
-    Object.keys(world.hands).forEach(id => hands[id] = world.hands[id].slice());
+    hands[this.playerId] = me.hand.filter(function(c) { return c.id !== cand.id; });
+    const keys = Object.keys(world.hands);
+    for (let i = 0; i < keys.length; i++) hands[keys[i]] = world.hands[keys[i]].slice();
 
     let trk = this.engine.trick.slice();
     trk.push({ playerId: this.playerId, card: cand });
     let ct = (this.engine.currentTurnIndex + 1) % 4;
 
-    let tA = this.engine.tricksWon.A, tB = this.engine.tricksWon.B;
-    let pA = this.engine.pointsWon.A, pB = this.engine.pointsWon.B;
+    let tA = this.engine.tricksWon.A;
+    let tB = this.engine.tricksWon.B;
+    let pA = this.engine.pointsWon.A;
+    let pB = this.engine.pointsWon.B;
     const rem = CONFIG.TRICKS_PER_ROUND - (tA + tB);
     let pl = 0;
 
@@ -602,7 +731,7 @@ export class BotAI {
         if (!h || !h.length) { ct = (ct + 1) % 4; continue; }
         const lg = this.quickLegal(h, trk, tr);
         const ch = this.quickPolicy(pid, lg, trk, tr);
-        const ci = h.findIndex(c => c.id === ch.id);
+        const ci = h.findIndex(function(c) { return c.id === ch.id; });
         if (ci === -1) {
           const fb = h[0];
           hands[pid].splice(0, 1);
@@ -614,14 +743,15 @@ export class BotAI {
         ct = (ct + 1) % 4;
       }
       const wn = this.quickWinner(trk, tr);
-      const wp = pls.find(p => p.id === wn.playerId);
+      const wp = pls.find(function(p) { return p.id === wn.playerId; });
       const wt = wp.team;
       let pts = 0;
-      trk.forEach(t => pts += t.card.value(tr));
+      for (let i = 0; i < trk.length; i++) pts += trk[i].card.value(tr);
       if (pl === rem - 1) pts += CONFIG.LAST_TRICK_BONUS;
       if (wt === 'A') { tA++; pA += pts; } else { tB++; pB += pts; }
-      ct = pls.findIndex(p => p.id === wn.playerId);
-      trk = []; pl++;
+      ct = pls.findIndex(function(p) { return p.id === wn.playerId; });
+      trk = [];
+      pl++;
     }
 
     const mtPts = mt === 'A' ? pA : pB;
@@ -632,22 +762,26 @@ export class BotAI {
   quickLegal(h, tk, tr) {
     if (!tk.length) return h.slice();
     const ld = tk[0].card.suit;
-    const lc = h.filter(c => c.suit === ld);
+    const lc = h.filter(function(c) { return c.suit === ld; });
     if (lc.length) return lc;
     if (!tr) return h.slice();
-    const ts = h.filter(c => c.suit === tr);
+    const ts = h.filter(function(c) { return c.suit === tr; });
     return ts.length ? ts : h.slice();
   }
 
   quickPolicy(pid, lg, tk, tr) {
     if (!lg.length) return null;
     if (lg.length === 1) return lg[0];
-    if (!tk.length) return lg.reduce((a, b) => b.value(tr) > a.value(tr) ? b : a);
+    if (!tk.length) {
+      return lg.reduce(function(a, b) { return b.value(tr) > a.value(tr) ? b : a; });
+    }
     const wn = this.quickWinner(tk, tr);
-    const mt = this.engine.players.find(p => p.id === pid).team;
-    const wt = this.engine.players.find(p => p.id === wn.playerId).team;
-    if (mt === wt) return lg.reduce((a, b) => b.value(tr) < a.value(tr) ? b : a);
-    return lg.reduce((a, b) => b.strength(tr) > a.strength(tr) ? b : a);
+    const mt = this.engine.players.find(function(p) { return p.id === pid; }).team;
+    const wt = this.engine.players.find(function(p) { return p.id === wn.playerId; }).team;
+    if (mt === wt) {
+      return lg.reduce(function(a, b) { return b.value(tr) < a.value(tr) ? b : a; });
+    }
+    return lg.reduce(function(a, b) { return b.strength(tr) > a.strength(tr) ? b : a; });
   }
 
   quickWinner(tk, tr) {
@@ -657,9 +791,11 @@ export class BotAI {
       const c = tk[i];
       const cT = tr !== null && c.card.suit === tr;
       const wT = tr !== null && w.card.suit === tr;
-      if (cT && !wT) w = c;
-      else if (cT && wT) { if (c.card.strength(tr) > w.card.strength(tr)) w = c; }
-      else if (!cT && !wT) {
+      if (cT && !wT) {
+        w = c;
+      } else if (cT && wT) {
+        if (c.card.strength(tr) > w.card.strength(tr)) w = c;
+      } else if (!cT && !wT) {
         if (c.card.suit === ld && w.card.suit === ld && c.card.strength(tr) > w.card.strength(tr)) w = c;
       }
     }
@@ -668,26 +804,26 @@ export class BotAI {
 
   minimaxBestCard(lg) {
     let best = lg[0], bv = -Infinity;
-    for (const c of lg) {
-      const v = this.evaluateEndgame(c);
-      if (v > bv) { bv = v; best = c; }
+    for (let i = 0; i < lg.length; i++) {
+      const v = this.evaluateEndgame(lg[i]);
+      if (v > bv) { bv = v; best = lg[i]; }
     }
     return best;
   }
 
   evaluateEndgame(c) {
     const tr = this.engine.trumpSuit;
-    const me = this.engine.players.find(p => p.id === this.playerId);
+    const me = this.engine.players.find(function(p) { return p.id === this.playerId; }.bind(this));
     const mt = me.team;
     let v = c.value(tr) * 1.6 + c.strength(tr) * 2.4;
     const tt = this.engine.trick.slice();
     tt.push({ playerId: this.playerId, card: c });
     if (tt.length === 4) {
       const wn = this.quickWinner(tt, tr);
-      const wp = this.engine.players.find(p => p.id === wn.playerId);
+      const wp = this.engine.players.find(function(p) { return p.id === wn.playerId; });
       if (wp.team === mt) {
         let pts = 0;
-        tt.forEach(t => pts += t.card.value(tr));
+        for (let i = 0; i < tt.length; i++) pts += tt[i].card.value(tr);
         if (this.engine.tricksWon.A + this.engine.tricksWon.B === CONFIG.TRICKS_PER_ROUND - 1) {
           pts += CONFIG.LAST_TRICK_BONUS;
         }
