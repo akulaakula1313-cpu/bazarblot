@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#050609">
+  <meta name="description" content="ԲԱԶԱՌ-ԲԼՈՏ — Պրեմիում քարտային խաղ: Խաղացեք բոտերի դեմ կամ օնլայն:">
+  <meta name="author" content="SANI GROUP">
+  <title>ԲԱԶԱՌ-ԲԼՈՏ · SANI GROUP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Armenian:wght@300;400;500;600;700;800;900&family=Noto+Serif+Armenian:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ФОНОВЫЕ СЛОИ -->
+<div class="bg-layer bg-base"></div>
+<div class="bg-layer bg-grid"></div>
+<div class="bg-layer bg-noise"></div>
+<div class="bg-layer" style="position:fixed;inset:0;overflow:hidden;">
+  <div class="aurora aurora-1"></div>
+  <div class="aurora aurora-2"></div>
+  <div class="aurora aurora-3"></div>
+</div>
+<div class="bg-layer ambient-dots">
+  <span style="top: 12%; left: 15%; animation-delay: 0s;"></span>
+  <span class="green" style="top: 25%; left: 82%; animation-delay: 0.8s;"></span>
+  <span style="top: 68%; left: 12%; animation-delay: 1.6s;"></span>
+  <span class="green" style="top: 82%; left: 76%; animation-delay: 2.4s;"></span>
+  <span style="top: 45%; left: 92%; animation-delay: 3.2s;"></span>
+  <span style="top: 55%; left: 6%; animation-delay: 4s;"></span>
+  <span class="green" style="top: 8%; left: 55%; animation-delay: 5.2s;"></span>
+  <span style="top: 92%; left: 45%; animation-delay: 6s;"></span>
+</div>
+
+<!-- ЭКРАН 1. ГЛАВНОЕ МЕНЮ -->
+<section id="screen-menu" class="screen active flex-col items-center justify-center p-4 relative z-10">
+  <div class="w-full max-w-lg mx-auto animate-slide-up" style="position:relative;z-index:2;">
+    <div class="flex flex-col items-center mb-10">
+      <div class="flex items-center justify-center gap-3 mb-8">
+        <div class="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl animate-float" style="background: linear-gradient(145deg, #fff5cc, #ffd166 40%, #8a5d00); box-shadow: 0 0 25px rgba(255,209,102,0.7), 0 0 60px rgba(255,209,102,0.35), inset 0 2px 0 rgba(255,255,255,0.6), inset 0 -3px 0 rgba(120,80,0,0.4); color: #1a1204; transform: rotate(-6deg);">♠</div>
+        <div class="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl animate-float" style="background: linear-gradient(145deg, #ffb0c0, #ff4d6d 40%, #7a0a1f); box-shadow: 0 0 25px rgba(255,77,109,0.7), 0 0 60px rgba(255,77,109,0.35), inset 0 2px 0 rgba(255,255,255,0.5), inset 0 -3px 0 rgba(80,0,20,0.5); color: #fff; animation-delay: 0.5s; transform: rotate(4deg);">♥</div>
+        <div class="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl animate-float" style="background: linear-gradient(145deg, #fff5cc, #ffd166 40%, #8a5d00); box-shadow: 0 0 25px rgba(255,209,102,0.7), 0 0 60px rgba(255,209,102,0.35), inset 0 2px 0 rgba(255,255,255,0.6), inset 0 -3px 0 rgba(120,80,0,0.4); color: #1a1204; animation-delay: 1s; transform: rotate(-3deg);">♣</div>
+        <div class="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl animate-float" style="background: linear-gradient(145deg, #ffb0c0, #ff4d6d 40%, #7a0a1f); box-shadow: 0 0 25px rgba(255,77,109,0.7), 0 0 60px rgba(255,77,109,0.35), inset 0 2px 0 rgba(255,255,255,0.5), inset 0 -3px 0 rgba(80,0,20,0.5); color: #fff; animation-delay: 1.5s; transform: rotate(5deg);">♦</div>
+      </div>
+      <h1 class="text-6xl sm:text-7xl font-black tracking-wider text-shine font-display" style="line-height:1;">ԲԱԶԱՌ-ԲԼՈՏ</h1>
+      <p class="text-neon-gold/60 tracking-[0.7em] mt-5 text-xs sm:text-sm font-black">SANI GROUP</p>
+      <div class="h-px w-56 mx-auto mt-8" style="background: linear-gradient(90deg, transparent, rgba(255,209,102,0.8), transparent); box-shadow: 0 0 20px rgba(255,209,102,0.5);"></div>
+    </div>
+    <div class="flex flex-col gap-5 px-4">
+      <button id="btn-mode-bot" class="btn-premium btn-gold text-lg flex items-center justify-center gap-3">
+        <span class="text-2xl">🎯</span><span>ԽԱՂԱԼ ԲՈՏԻ ՀԵՏ</span>
+      </button>
+      <button id="btn-mode-online" class="btn-premium btn-emerald text-lg flex items-center justify-center gap-3">
+        <span class="text-2xl">🌐</span><span>ՕՆԼԱՅՆ ԽԱՂ</span>
+      </button>
+      <button id="btn-show-rules" class="btn-ghost mt-3 text-sm flex items-center justify-center gap-2 py-3">
+        <span>📜</span><span>ԽԱՂԻ ԿԱՆՈՆՆԵՐ</span>
+      </button>
+    </div>
+    <p class="mt-12 text-center text-[11px] text-white/30 tracking-widest font-semibold">© 2018-2026 REBLOT.AM · SANI GROUP</p>
+  </div>
+</section>
+
+<!-- ЭКРАН 2. ВЫБОР ЦЕЛИ -->
+<section id="screen-target" class="screen flex-col items-center justify-center p-4 relative z-10">
+  <div class="w-full max-w-md mx-auto animate-slide-up">
+    <button data-back="menu" class="btn-ghost mb-6 text-sm">← ՀԵՏ</button>
+    <div class="glass rounded-3xl p-8">
+      <div class="text-center mb-8">
+        <h2 class="text-3xl sm:text-4xl font-black text-gold-gradient font-display tracking-wide">ՆՊԱՏԱԿ</h2>
+        <p class="text-white/50 text-sm mt-3">Ընտրեք խաղի նպատակային միավորը</p>
+        <div class="h-px w-24 mx-auto mt-5" style="background: linear-gradient(90deg, transparent, rgba(255,209,102,0.6), transparent);"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <button data-target="101" class="target-btn btn-premium btn-emerald text-3xl" style="padding:32px 16px;">101</button>
+        <button data-target="151" class="target-btn btn-premium btn-emerald text-3xl" style="padding:32px 16px;">151</button>
+        <button data-target="201" class="target-btn btn-premium text-3xl" style="padding:32px 16px;background: linear-gradient(135deg, #9dc4ff 0%, #4cc9f0 20%, #1a6fa8 60%, #062e4a 100%);color:#fff;">201</button>
+        <button data-target="301" class="target-btn btn-premium text-3xl" style="padding:32px 16px;background: linear-gradient(135deg, #d8a8ff 0%, #b794f6 20%, #7c3aed 60%, #3b0764 100%);color:#fff;">301</button>
+      </div>
+      <p class="text-center text-white/35 text-xs mt-6">Առաջին թիմը, որը հասնում է թիրախին, հաղթում է</p>
+    </div>
+  </div>
+</section>
+
+<!-- ЭКРАН 3. ЛОББИ -->
+<section id="screen-lobby" class="screen flex-col items-center justify-center p-4 relative z-10">
+  <div class="w-full max-w-md mx-auto animate-slide-up">
+    <button id="btn-lobby-back" class="btn-ghost mb-6 text-sm">← ՀԵՏ</button>
+    <div class="glass rounded-3xl p-8">
+      <div class="text-center mb-6">
+        <h2 class="text-3xl font-black text-gold-gradient font-display">ՍԵՆՅԱԿ</h2>
+        <p class="text-white/50 text-xs mt-2">Սպասեք մյուս խաղացողներին</p>
+      </div>
+      <div class="mb-6 text-center">
+        <div class="text-[10px] text-white/40 uppercase tracking-[0.4em] mb-3">ՍԵՆՅԱԿԻ ԿՈԴ</div>
+        <div id="lobby-room-code" class="bid-display inline-block">------</div>
+        <div class="mt-4 flex gap-2 justify-center flex-wrap">
+          <button id="btn-copy-code" class="btn-ghost text-xs py-2 px-4">📋 ՊԱՏՃԵՆԵԼ</button>
+        </div>
+      </div>
+      <div class="mb-5">
+        <div class="text-[10px] text-white/40 uppercase tracking-[0.4em] mb-2 text-center">ՄԻԱՆԱԼ ՍԵՆՅԱԿԻՆ</div>
+        <div class="flex gap-2">
+          <input id="input-join-code" type="text" maxlength="6" placeholder="ԿՈԴ"
+                 class="flex-1 px-4 py-3 rounded-xl bg-black/50 border-2 border-white/15 text-white font-black text-center uppercase focus:border-neon-gold focus:outline-none transition"
+                 style="letter-spacing: 0.3em;" />
+          <button id="btn-do-join" class="btn-premium btn-emerald px-5 py-3 text-sm">ՄԻԱՆԱԼ</button>
+        </div>
+      </div>
+      <div class="space-y-3 mb-6">
+        <div class="flex items-center justify-between px-4 py-4 rounded-2xl" style="background: linear-gradient(155deg, rgba(34,255,156,0.08), rgba(0,0,0,0.4)); border: 1px solid rgba(34,255,156,0.35);">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm" style="background: linear-gradient(135deg,#22ff9c,#0a8460); color: #04140c;">S</div>
+            <div>
+              <div class="text-sm font-bold text-white">Դուք</div>
+              <div class="text-[10px] text-white/50">Թիմ A</div>
+            </div>
+          </div>
+          <span id="lobby-you-status" class="text-neon-green text-xs font-black">✓ ՊԱՏՐԱՍՏ</span>
+        </div>
+        <div class="flex items-center justify-between px-4 py-4 rounded-2xl" style="background: linear-gradient(155deg, rgba(255,255,255,0.04), rgba(0,0,0,0.4)); border: 1px solid rgba(255,255,255,0.1);">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm text-white/50" style="background: rgba(255,255,255,0.08); border: 1px dashed rgba(255,255,255,0.2);">?</div>
+            <div>
+              <div class="text-sm font-bold text-white/70">Մրցակից</div>
+              <div class="text-[10px] text-white/40">Թիմ B</div>
+            </div>
+          </div>
+          <span id="lobby-opp-status" class="text-neon-gold text-xs font-black animate-pulse">ՍՊԱՍՈՒՄ...</span>
+        </div>
+      </div>
+      <button id="btn-lobby-start" disabled class="btn-premium btn-gold w-full">ՍԿՍԵԼ ԽԱՂԸ</button>
+      <p class="text-center text-[11px] text-white/30 mt-5">Սպասում ենք մրցակցին միանալուն...</p>
+    </div>
+  </div>
+</section>
+
+<!-- ЭКРАН 4. ИГРА -->
+<section id="screen-game" class="screen flex-col w-full h-full relative z-10">
+  <header class="relative z-30 flex items-center justify-between gap-2 px-3 py-3" style="background: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(5,6,9,0.85) 70%, rgba(5,6,9,0.4) 100%); border-bottom: 1px solid rgba(255,209,102,0.2); backdrop-filter: blur(20px);">
+    <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+      <div class="flex items-center gap-1.5 font-black text-sm sm:text-base whitespace-nowrap">
+        <span class="text-lg" style="color:#ffd166; text-shadow: 0 0 12px rgba(255,209,102,0.8);">♠</span>
+        <span class="text-shine hidden sm:inline">ԲԱԶԱՌ-ԲԼՈՏ</span>
+        <span class="text-gold-gradient sm:hidden">Բ-Բ</span>
+      </div>
+      <div class="hidden sm:flex text-[11px] items-center gap-1.5 text-white/60">
+        <span>Թիրախ՝</span><span id="hud-target" class="font-black" style="color:#ffd166;">151</span>
+      </div>
+      <div class="hidden md:flex text-[11px] items-center gap-1.5 text-white/60">
+        <span>· Ռաունդ՝</span><span id="hud-round" class="text-white font-black">1</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+      <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style="background: linear-gradient(155deg, rgba(34,255,156,0.12), rgba(0,0,0,0.5)); border: 1px solid rgba(34,255,156,0.35);">
+        <span class="text-[10px] sm:text-xs font-black" style="color:#22ff9c;">A</span>
+        <span id="hud-score-a" class="text-white font-black text-sm sm:text-base">0</span>
+      </div>
+      <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style="background: linear-gradient(155deg, rgba(255,77,109,0.12), rgba(0,0,0,0.5)); border: 1px solid rgba(255,77,109,0.35);">
+        <span class="text-[10px] sm:text-xs font-black" style="color:#ff4d6d;">B</span>
+        <span id="hud-score-b" class="text-white font-black text-sm sm:text-base">0</span>
+      </div>
+      <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);">
+        <span class="text-white/50 text-[11px]">Կոզր՝</span>
+        <span id="hud-trump" class="font-black text-base" style="color:#ffd166;">—</span>
+      </div>
+      <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);">
+        <span class="text-white/50 text-[11px]">Հայտ՝</span>
+        <span id="hud-bid" class="font-black" style="color:#ffd166;">—</span>
+      </div>
+    </div>
+    <button id="btn-exit-game" class="px-3 py-1.5 rounded-lg text-xs font-black transition" style="background: linear-gradient(155deg, rgba(255,77,109,0.15), rgba(0,0,0,0.4)); border: 1px solid rgba(255,77,109,0.4); color: #ff8fa3;">ԼՔԵԼ</button>
+  </header>
+
+  <main class="flex-1 relative table-felt overflow-hidden">
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div class="table-oval w-[86%] h-[64%] max-w-[1000px] max-h-[560px] relative">
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="text-center opacity-10 select-none">
+            <div class="text-6xl sm:text-8xl font-black text-white tracking-[0.25em] font-display">REBLOT</div>
+            <div class="text-sm sm:text-base font-black text-white/60 tracking-[0.7em] mt-3">.AM</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="absolute top-3 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-20">
+      <div id="seat-top" class="seat text-center">
+        <div class="text-[10px] font-black tracking-[0.3em] mb-1" style="color: rgba(255,209,102,0.6);">ՊԱՐՏՆԵՐ</div>
+        <div id="seat-top-name" class="font-bold text-sm text-white leading-tight">ԲՈՏ ՊԱՐՏՆԵՐ</div>
+        <div id="seat-top-info" class="text-[11px] mt-1 font-bold" style="color:#ffd166;">8 քարտ</div>
+      </div>
+      <div id="hand-top" class="flex justify-center -space-x-3"></div>
+    </div>
+
+    <div class="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-3 z-20">
+      <div id="hand-left" class="flex flex-col -space-y-3"></div>
+      <div id="seat-left" class="seat text-center">
+        <div class="text-[10px] font-black tracking-[0.3em] mb-1" style="color: rgba(255,209,102,0.6);">ՀԱԿԱՌԱԿՈՐԴ</div>
+        <div id="seat-left-name" class="font-bold text-sm text-white leading-tight">ԲՈՏ 1</div>
+        <div id="seat-left-info" class="text-[11px] mt-1 font-bold" style="color:#ffd166;">8 քարտ</div>
+      </div>
+    </div>
+
+    <div class="absolute right-3 top-1/2 -translate-y-1/2 flex flex-row-reverse items-center gap-3 z-20">
+      <div id="hand-right" class="flex flex-col -space-y-3"></div>
+      <div id="seat-right" class="seat text-center">
+        <div class="text-[10px] font-black tracking-[0.3em] mb-1" style="color: rgba(255,209,102,0.6);">ՀԱԿԱՌԱԿՈՐԴ</div>
+        <div id="seat-right-name" class="font-bold text-sm text-white leading-tight">ԲՈՏ 2</div>
+        <div id="seat-right-info" class="text-[11px] mt-1 font-bold" style="color:#ffd166;">8 քարտ</div>
+      </div>
+    </div>
+
+    <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-20 w-full px-2">
+      <div id="hand-bottom" class="flex justify-center -space-x-3 mb-2"></div>
+      <div id="seat-bottom" class="seat you text-center">
+        <div class="text-[10px] font-black tracking-[0.3em] mb-1" style="color: rgba(34,255,156,0.7);">ԴՈՒՔ</div>
+        <div id="seat-bottom-name" class="font-bold text-sm text-white leading-tight">ԽԱՂԱՑՈՂ</div>
+        <div id="seat-bottom-info" class="text-[11px] mt-1 font-bold" style="color:#22ff9c;">8 քարտ</div>
+      </div>
+    </div>
+
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+      <div id="table-cards" class="flex items-center justify-center" style="gap: -10px;"></div>
+    </div>
+
+    <div id="bubble-top" class="absolute top-36 left-1/2 -translate-x-1/2 z-30 pointer-events-none"></div>
+    <div id="bubble-left" class="absolute left-40 top-1/2 -translate-y-1/2 z-30 pointer-events-none"></div>
+    <div id="bubble-right" class="absolute right-40 top-1/2 -translate-y-1/2 z-30 pointer-events-none"></div>
+    <div id="bubble-bottom" class="absolute bottom-44 left-1/2 -translate-x-1/2 z-30 pointer-events-none"></div>
+
+    <div class="absolute top-0 left-0 right-0 h-[3px] z-20">
+      <div id="turn-timer" class="timer-bar" style="width: 0%;"></div>
+    </div>
+  </main>
+
+  <footer id="action-panel" class="relative z-30 min-h-[100px] sm:min-h-[120px] flex items-center justify-center gap-2 sm:gap-3 flex-wrap p-3" style="background: linear-gradient(0deg, rgba(5,6,9,0.98) 0%, rgba(5,6,9,0.9) 60%, rgba(5,6,9,0.4) 100%); border-top: 1px solid rgba(255,209,102,0.2); backdrop-filter: blur(20px);">
+    <div class="text-white/50 text-sm font-bold py-4">Սպասեք...</div>
+  </footer>
+</section>
+
+<div id="modal-container" class="modal-overlay">
+  <div id="modal-content" class="modal-box-premium">
+    <div class="text-center text-white/60 py-8">Բեռնվում է...</div>
+  </div>
+</div>
+
+<div id="toast-container" class="fixed top-24 left-1/2 -translate-x-1/2 z-[300] flex flex-col items-center gap-3 pointer-events-none"></div>
+<div id="particle-layer" class="particle-layer"></div>
+
+<script type="module" src="/script.js"></script>
+</body>
+</html>

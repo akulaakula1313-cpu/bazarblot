@@ -1,0 +1,28 @@
+{
+  "name": "bazarblot",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "ԲԱԶԱՌ-ԲԼՈՏ — Օնլայն քարտային խաղ (SANI GROUP)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 3000"
+  },
+  "keywords": ["bazar", "blot", "belote", "cards", "multiplayer"],
+  "author": "SANI GROUP",
+  "license": "UNLICENSED",
+  "private": true,
+  "engines": { "node": ">=20.0.0" },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0",
+    "tailwindcss": "^3.4.13",
+    "postcss": "^8.4.47",
+    "autoprefixer": "^10.4.20"
+  }
+}
